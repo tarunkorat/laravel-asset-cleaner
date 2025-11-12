@@ -1,0 +1,56 @@
+{
+    "name": "tarunkorat/laravel-asset-cleaner",
+    "description": "Safely detect and remove unused CSS, JS, SCSS and other assets from Laravel applications",
+    "type": "library",
+    "keywords": [
+        "laravel",
+        "assets",
+        "cleaner",
+        "unused",
+        "css",
+        "js",
+        "vue",
+        "react",
+        "images",
+        "optimization",
+        "cleanup"
+    ],
+    "homepage": "https://github.com/tarunkorat/laravel-asset-cleaner",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Tarun Korat",
+            "email": "tarunkorat336@gmail.com",
+            "homepage": "https://github.com/tarunkorat",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": "^8.0|^8.1|^8.2|^8.3",
+        "illuminate/support": "^9.0|^10.0|^11.0|^12.0",
+        "symfony/finder": "^6.0|^7.0|^8.0"
+    },
+     "require-dev": {
+        "orchestra/testbench": "^7.0|^8.0|^9.0|^10.0",
+        "phpunit/phpunit": "^9.5|^10.0|^11.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "TarunKorat\\AssetCleaner\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tarunkorat\\AssetCleaner\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "TarunKorat\\AssetCleaner\\AssetCleanerServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
