@@ -301,7 +301,7 @@ git clone https://github.com/tarunkorat/laravel-asset-cleaner.git
 
 # Install dependencies
 composer install
-
+```
 ## 📝 Changelog
 
 Please see [CHANGELOG.md](CHANGELOG.md) for recent changes.
