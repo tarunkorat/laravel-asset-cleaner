@@ -24,6 +24,7 @@ Safely detect and remove unused CSS, JS, SCSS, images, and other assets from you
 - 🎨 **Framework Agnostic** - Works with Mix, Vite, plain webpack, and more
 - 🔒 **Protected Files** - Never accidentally delete important files
 - 📝 **Strict Matching** - Avoids false positives with intelligent pattern matching
+- 🌟 Wildcard Support (New in v1.0.1) - Use wildcards in directory patterns
 
 ## 📋 Requirements
 
@@ -135,15 +136,28 @@ return [
     // Define asset types and their locations
     'asset_types' => [
         'js' => [
-            'directories' => ['resources/js', 'public/js'],
+            'directories' => [
+                'resources/js', 
+                'public/js',
+                'public/js/*',  // ✨ NEW: Wildcard support
+            ],
             'extensions' => ['js', 'jsx', 'ts', 'tsx', 'vue', 'mjs'],
         ],
         'css' => [
-            'directories' => ['resources/css', 'resources/sass', 'public/css'],
+            'directories' => [
+                'resources/css', 
+                'resources/sass', 
+                'public/css',
+                'public/css/*',  // ✨ NEW: Scans css/vendor, css/admin, etc.'
+            ],
             'extensions' => ['css', 'scss', 'sass', 'less'],
         ],
         'img' => [
-            'directories' => ['resources/images', 'public/images'],
+            'directories' => [
+                'resources/images', 
+                'public/images',
+                'public/assets/**',  // ✨ NEW: Recursive wildcard
+            ],
             'extensions' => ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp', 'ico'],
         ],
         // ... more types
@@ -178,6 +192,46 @@ return [
    - Build configs (webpack.mix.js, vite.config.js, package.json)
 3. **Strict Matching** - Only matches complete filenames with extensions
 4. **Safe Deletion** - Creates timestamped backups before removal
+
+### Wildcard Directory Patterns (New in v1.0.1)
+You can now use wildcard patterns in your directory configuration for more flexible asset scanning.
+
+**Single Level Wildcard (*)**
+Single Level Wildcard (*)
+```
+'directories' => [
+    'public/css/*',  // Scans: public/css/vendor, public/css/admin, public/css/themes
+]
+```
+**Example structure:**
+```
+public/css/
+  ├── app.css           ✅ Scanned
+  ├── vendor/
+  │   └── bootstrap.css ✅ Scanned
+  └── admin/
+      └── style.css     ✅ Scanned
+```
+
+**Recursive Wildcard **(**)
+Scans the directory and ALL subdirectories recursively:
+```
+'directories' => [
+    'public/assets/**',  // Scans everything under public/assets
+]
+```
+**Example structure:**
+```
+public/assets/
+  ├── css/
+  │   ├── app.css              ✅ Scanned
+  │   └── vendor/
+  │       └── bootstrap.css    ✅ Scanned
+  ├── js/
+  │   └── app.js               ✅ Scanned
+  └── images/
+      └── logo.png             ✅ Scanned
+```      
 
 ### What Gets Detected
 
@@ -308,7 +362,7 @@ Please see [CHANGELOG.md](CHANGELOG.md) for recent changes.
 
 ## 🔒 Security
 
-If you discover any security issues, please email your-email@example.com instead of using the issue tracker.
+If you discover any security issues, please email tarunkorat336@gmail.com instead of using the issue tracker.
 
 ## 📄 License
 

@@ -75,36 +75,142 @@ class AssetScanner
             $extensions = $config['extensions'];
 
             foreach ($directories as $dir) {
-                $fullPath = $basePath . '/' . $dir;
+                $expandedDirs = $this->expandWildcardDirectory($dir);
 
-                if (!File::isDirectory($fullPath)) {
-                    continue;
-                }
+                foreach ($expandedDirs as $expandedDir) {
+                    $fullPath = $basePath . '/' . $dir;
 
-                $finder = new Finder();
-                $finder->files()
-                       ->in($fullPath)
-                       ->name('/\.(' . implode('|', $extensions) . ')$/');
-
-                foreach ($finder as $file) {
-                    $relativePath = str_replace($basePath . '/', '', $file->getRealPath());
-
-                    if ($this->shouldExclude($relativePath)) {
+                    if (!File::isDirectory($fullPath)) {
                         continue;
                     }
 
-                    $this->assetFiles[$relativePath] = [
-                        'path' => $relativePath,
-                        'name' => $file->getFilename(),
-                        'basename' => $file->getBasename('.' . $file->getExtension()),
-                        'size' => $file->getSize(),
-                        'type' => $file->getExtension(),
-                        'category' => $category,
-                        'modified' => date('Y-m-d H:i:s', $file->getMTime()),
-                    ];
+                    $finder = new Finder();
+                    $finder->files()
+                        ->in($fullPath)
+                        ->name('/\.(' . implode('|', $extensions) . ')$/');
+
+                    foreach ($finder as $file) {
+                        $relativePath = str_replace($basePath . '/', '', $file->getRealPath());
+
+                        if ($this->shouldExclude($relativePath)) {
+                            continue;
+                        }
+
+                        $this->assetFiles[$relativePath] = [
+                            'path' => $relativePath,
+                            'name' => $file->getFilename(),
+                            'basename' => $file->getBasename('.' . $file->getExtension()),
+                            'size' => $file->getSize(),
+                            'type' => $file->getExtension(),
+                            'category' => $category,
+                            'modified' => date('Y-m-d H:i:s', $file->getMTime()),
+                        ];
+                    }
                 }
             }
         }
+    }
+
+    /**
+     * Expand wildcard directory patterns
+     *
+     * Examples:
+     * - public/css/* → [public/css/vendor, public/css/admin, ...]
+     * - resources/js/components/* → [resources/js/components/auth, resources/js/components/dashboard, ...]
+     * - public/assets/** → [public/assets/css, public/assets/css/vendor, public/assets/js, ...]
+     *
+     * @param string $pattern
+     * @return array
+     */
+    private function expandWildcardDirectory(string $pattern): array
+    {
+        $basePath = base_path();
+
+        // No wildcard, return as-is
+        if (strpos($pattern, '*') === false) {
+            return [$pattern];
+        }
+
+        $expanded = [];
+
+        // Handle /** (recursive wildcard)
+        if (strpos($pattern, '**') !== false) {
+            $basePattern = str_replace('**', '', $pattern);
+            $basePattern = rtrim($basePattern, '/');
+            $fullBasePath = $basePath . '/' . $basePattern;
+
+            if (File::isDirectory($fullBasePath)) {
+                // Add the base directory itself
+                $expanded[] = $basePattern;
+
+                // Find all subdirectories recursively
+                $finder = new Finder();
+                $finder->directories()->in($fullBasePath);
+
+                foreach ($finder as $dir) {
+                    $relativePath = str_replace($basePath . '/', '', $dir->getRealPath());
+                    $expanded[] = $relativePath;
+                }
+            }
+
+            return $expanded;
+        }
+
+        // Handle /* (single level wildcard)
+        if (strpos($pattern, '/*') !== false) {
+            $basePattern = str_replace('/*', '', $pattern);
+            $fullBasePath = $basePath . '/' . $basePattern;
+
+            if (File::isDirectory($fullBasePath)) {
+                // Add the base directory itself
+                $expanded[] = $basePattern;
+
+                // Find immediate subdirectories only
+                $subdirs = File::directories($fullBasePath);
+
+                foreach ($subdirs as $subdir) {
+                    $relativePath = str_replace($basePath . '/', '', $subdir);
+                    $expanded[] = $relativePath;
+                }
+            }
+
+            return $expanded;
+        }
+
+        // Handle /*/pattern (wildcard in middle)
+        if (preg_match('/^(.+?)\/\*\/(.+)$/', $pattern, $matches)) {
+            $baseDir = $matches[1];
+            $afterWildcard = $matches[2];
+            $fullBasePath = $basePath . '/' . $baseDir;
+
+            if (File::isDirectory($fullBasePath)) {
+                $subdirs = File::directories($fullBasePath);
+
+                foreach ($subdirs as $subdir) {
+                    $relativePath = str_replace($basePath . '/', '', $subdir);
+                    $fullPattern = $relativePath . '/' . $afterWildcard;
+
+                    if (File::isDirectory($basePath . '/' . $fullPattern)) {
+                        $expanded[] = $fullPattern;
+                    }
+                }
+            }
+
+            return $expanded;
+        }
+
+        // If pattern not recognized, try to treat as glob
+        $fullPattern = $basePath . '/' . $pattern;
+        $matches = glob($fullPattern, GLOB_ONLYDIR);
+
+        if (!empty($matches)) {
+            foreach ($matches as $match) {
+                $relativePath = str_replace($basePath . '/', '', $match);
+                $expanded[] = str_replace('\\', '/', $relativePath);
+            }
+        }
+
+        return empty($expanded) ? [$pattern] : $expanded;
     }
 
     private function findReferences(): void
@@ -180,7 +286,7 @@ class AssetScanner
     {
         // Match various import/require patterns
         $patterns = [
-           // JS/TS imports
+            // JS/TS imports
             "/import\s+.*?from\s+['\"]([^'\"]+)['\"]/",
             "/require\s*\(['\"]([^'\"]+)['\"]\)/",
             // CSS imports

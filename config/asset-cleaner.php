@@ -21,6 +21,7 @@ return [
             'directories' => [
                 'resources/js',
                 'public/js',
+                'public/js/*',
                 'resources/json'
             ],
             'extensions' => ['js', 'jsx', 'ts', 'tsx', 'vue', 'mjs'],
@@ -32,6 +33,7 @@ return [
                 'resources/scss',
                 'resources/less',
                 'public/css',
+                'public/css/*',
             ],
             'extensions' => ['css', 'scss', 'sass', 'less'],
         ],
@@ -42,6 +44,7 @@ return [
                 'public/images',
                 'public/img',
                 'public/assets/images',
+                'public/assets/**',
             ],
             'extensions' => ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp', 'ico', 'bmp'],
         ],

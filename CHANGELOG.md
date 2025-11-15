@@ -1,6 +1,10 @@
 # Changelog
 
 All notable changes to `laravel-asset-cleaner` will be documented in this file.
+## [1.0.1] - 2025-11-15
+### Added
+- Wildcard Directory Support - Use *, **, and */pattern in directory configuration
+- Improved directory scanning for complex asset structures
 
 ## [1.0.0] - 2025-11-12
 
